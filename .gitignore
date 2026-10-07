@@ -1,0 +1,14 @@
+# Archiso Build and Output Directories
+/BUILD/
+/out/
+work/
+
+# Compiled Disk Images
+*.iso
+*.img
+
+# Build Logs and Temporary Files
+*.log
+*.swp
+*~
+.DS_Store

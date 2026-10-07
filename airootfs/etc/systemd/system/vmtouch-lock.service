@@ -1,0 +1,11 @@
+[Unit]
+Description=VMTouch Graphics & Compatibility Pipeline Lock
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c 'vmtouch -dl /usr/lib/libvulkan.so* /usr/lib/libwayland-client.so* /usr/bin/waydroid $([ -d /usr/lib/wine ] && echo /usr/lib/wine)'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

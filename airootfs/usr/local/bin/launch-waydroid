@@ -1,0 +1,8 @@
+#!/bin/bash
+TOTAL_CORES=$(nproc --all)
+if [ "$TOTAL_CORES" -ge 4 ]; then
+    LAST_INDEX=$((TOTAL_CORES - 1))
+    taskset -c 1-$LAST_INDEX /usr/bin/waydroid show-full-ui
+else
+    /usr/bin/waydroid show-full-ui
+fi

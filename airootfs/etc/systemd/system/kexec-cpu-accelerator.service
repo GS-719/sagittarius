@@ -1,0 +1,13 @@
+[Unit]
+Description=Hardware-Sensing Kexec Hot-Swap Trampoline
+DefaultDependencies=no
+After=sysinit.target
+Before=basic.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/kexec-hot-swap.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=sysinit.target

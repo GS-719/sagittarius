@@ -1,0 +1,11 @@
+[Unit]
+Description=Adaptive Memory Engine
+After=sysinit.target
+Before=basic.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/adaptive-memory-engine.sh
+
+[Install]
+WantedBy=sysinit.target

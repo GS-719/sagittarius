@@ -1,0 +1,24 @@
+# Set background to #050505
+Window.SetBackgroundTopColor(0.02, 0.02, 0.02);
+Window.SetBackgroundBottomColor(0.02, 0.02, 0.02);
+
+# Load and center the logo
+# (Requires you to place 'logo.png' in this folder)
+logo_image = Image("logo.png");
+logo_sprite = Sprite(logo_image);
+logo_sprite.SetX(Window.GetWidth() / 2 - logo_image.GetWidth() / 2);
+logo_sprite.SetY(Window.GetHeight() / 2 - logo_image.GetHeight() / 2);
+
+# Status Message Engine
+message_sprite = Sprite();
+message_sprite.SetY(Window.GetHeight() - 80);
+
+fun display_status (text) {
+  if (!text) return;
+  # Draw text using RGB decimals for #2EE59D (Success Green)
+  text_image = Image.Text("[ OK ] " + text, 0.18, 0.89, 0.61);
+  message_sprite.SetImage(text_image);
+  message_sprite.SetX(Window.GetWidth() / 2 - text_image.GetWidth() / 2);
+}
+
+Plymouth.SetUpdateStatusFunction(display_status);

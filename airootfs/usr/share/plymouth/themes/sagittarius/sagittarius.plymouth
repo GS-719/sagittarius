@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Sagittarius Orbital Hybrid
+Description=Custom Logo with Systemd Status Logs
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/sagittarius
+ScriptFile=/usr/share/plymouth/themes/sagittarius/sagittarius.script

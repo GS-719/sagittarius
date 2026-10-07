@@ -1,0 +1,10 @@
+[terminal]
+vt = 1
+
+[default_session]
+command = "tuigreet --time --greeting 'SAGITTARIUS OS // ORBITAL COMMAND' --asterisks --theme 'border=magenta;text=white;prompt=cyan;time=magenta;action=cyan;button=magenta;container=black;input=white' --cmd startplasma-wayland"
+user = "greeter"
+
+[initial_session]
+command = "startplasma-wayland"
+user = "sagittarius"
