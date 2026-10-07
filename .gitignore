@@ -12,3 +12,8 @@ work/
 *.swp
 *~
 .DS_Store
+# Local Repositories and Compiled Packages
+local-repo/
+pkg-kernels/
+*.pkg.tar.zst
+*.pkg.tar.xz

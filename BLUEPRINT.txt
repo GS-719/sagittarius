@@ -1,0 +1,193 @@
+// ============================================================================
+// UPDATED MASTER BLUEPRINT: HYPER-PERFORMANCE PORTABLE ARCH LINUX AUTOMATION
+// ============================================================================
+
+FUNCTION Build_Ultimate_Portable_OS_Architecture(Target_Drive):
+
+    PRINT "Initializing Ultimate Hyper-Performance Portable OS Matrix (systemd-boot + kexec)..."
+
+    // ========================================================================
+    // LAYER 1: SYSTEMD-BOOT & KEXEC HARDWARE-SENSING HOT-SWAP MATRIX
+    // ========================================================================
+    PRINT "[1/9] Configuring universal systemd-boot loader and kexec hardware hot-swap..."
+
+    // systemd-boot always boots the baseline generic kernel safely
+    CONFIGURE_SYSTEMD_BOOT_ENTRY(
+        TITLE="Arch Linux (v1-Generic Safe Boot)",
+        LINUX="/vmlinuz-linux-v1-generic",
+        INITRD="/initramfs-linux.img",
+        OPTIONS="root=PARTUUID=... rw mitigations=off split_lock_detect=off clearcpuid=perf quiet loglevel=3"
+    )
+
+    // Create systemd service executed the exact millisecond systemd wakes up
+    CREATE_SYSTEMD_SERVICE("kexec-cpu-accelerator", TRIGGER="sysinit.target", TYPE="oneshot", LOGIC={
+
+        DETECT_AVX512 = CHECK_CPUINFO_FLAGS("avx512f")
+        DETECT_AVX2   = CHECK_CPUINFO_FLAGS("avx2")
+
+        IF DETECT_AVX512 THEN
+            PRINT "AVX-512 instruction set detected. Hot-swapping to v4-ultra kernel via kexec..."
+            EXECUTE "kexec -l /vmlinuz-linux-v4-ultra --initrd=/initramfs-linux.img --reuse-cmdline"
+            EXECUTE "systemctl kexec"
+        ELSE IF DETECT_AVX2 THEN
+            PRINT "AVX2 instruction set detected. Hot-swapping to v3-perf kernel via kexec..."
+            EXECUTE "kexec -l /vmlinuz-linux-v3-perf --initrd=/initramfs-linux.img --reuse-cmdline"
+            EXECUTE "systemctl kexec"
+        ELSE
+            PRINT "Baseline CPU detected. Staying on v1-generic kernel."
+        ENDIF
+    })
+
+    // ========================================================================
+    // LAYER 2: KERNEL MATRIX COMPILATION & INITRAMFS
+    // ========================================================================
+    PRINT "[2/9] Compiling multi-target kernel matrix and packing Initramfs..."
+
+    OPEN_FILE("/etc/mkinitcpio.conf")
+    APPEND_TO_ARRAY("FILES", "/usr/lib/libc.so* /usr/lib/libwayland* /usr/lib/libvulkan*")
+    APPEND_TO_ARRAY("BINARIES", "/usr/bin/bash /usr/bin/kexec")
+    SAVE_FILE()
+
+    EXECUTE "mkinitcpio -zstd -c /etc/mkinitcpio.conf"
+
+    OPEN_KERNEL_SOURCE_CONFIG()
+    ENABLE_FEATURE(["CONFIG_LTO_CLANG_THIN", "CONFIG_PREEMPT_RT", "CONFIG_HZ_1000", "CONFIG_IO_URING", "CONFIG_USER_NS", "CONFIG_KEXEC"])
+    ENABLE_FEATURE(["CONFIG_TRANSPARENT_HUGEPAGE_ALWAYS", "CONFIG_LRU_GEN"])
+    DISABLE_FEATURE(["CONFIG_SLUB_DEBUG", "CONFIG_CRASH_DUMP"])
+    SAVE_KERNEL_SOURCE_CONFIG()
+
+    COMPILE_KERNEL(FLAGS="-O3 -march=x86-64-v4", OUTPUT="/vmlinuz-linux-v4-ultra")
+    COMPILE_KERNEL(FLAGS="-O3 -march=x86-64-v3", OUTPUT="/vmlinuz-linux-v3-perf")
+    COMPILE_KERNEL(FLAGS="-O2 -march=x86-64",    OUTPUT="/vmlinuz-linux-v1-generic")
+
+    // ========================================================================
+    // LAYER 3: PHYSICAL DRIVE GEOMETRY & HYBRID MOUNT PADDING
+    // ========================================================================
+    PRINT "[3/9] Enforcing outer-rim sector layout and safe mount padding..."
+
+    SYSTEM_SECTORS = CALCULATE_DISK_GEOMETRY_OUTER_RIM(Target_Drive)
+    SYSTEM_PART    = DESIGNATE_PARTITION(Target_Drive, SYSTEM_SECTORS)
+    USER_PART      = DESIGNATE_PARTITION(Target_Drive, REMAINDER_OF_DISK)
+
+    EXECUTE "mkfs.ext4 -b 4096 -m 12 -O extents,uninit_bg" ON SYSTEM_PART
+    EXECUTE "mkfs.ext4 -b 4096 -m 1" ON USER_PART
+
+    SET_MOUNT_OPTIONS(SYSTEM_PART, "noatime,commit=15,barrier=1,data=ordered,noacl")
+    SET_MOUNT_OPTIONS(USER_PART,    "noatime,commit=15,barrier=1,data=ordered,noacl")
+
+    // ========================================================================
+    // LAYER 4: RUNTIME OVERRIDES & REAL-TIME MEMORY ENGINE
+    // ========================================================================
+    PRINT "[4/9] Injecting boot-triggered memory calculators..."
+
+    WRITE_SYSCTL_CONFIG("net.core.rmem_max=16777216")
+
+    CREATE_SYSTEMD_SERVICE("adaptive-memory-engine", TRIGGER="sysinit.target", LOGIC={
+        TOTAL_RAM_GIB = DETECT_HOST_RAM_GIB()
+
+        IF (TOTAL_RAM_GIB <= 2) THEN
+            WRITE_SYSCTL_CONFIG("vm.swappiness=100", "vm.vfs_cache_pressure=50", "vm.dirty_ratio=10")
+            GENERATE_ZRAM_CONFIG(SIZE="${TOTAL_RAM_GIB}GiB", ALGORITHM="zstd")
+        ELSE IF (TOTAL_RAM_GIB <= 4) THEN
+            WRITE_SYSCTL_CONFIG("vm.swappiness=20", "vm.vfs_cache_pressure=25", "vm.dirty_ratio=30")
+            LET SAFE_ZRAM_SIZE = TOTAL_RAM_GIB * 1.5
+            GENERATE_ZRAM_CONFIG(SIZE="${SAFE_ZRAM_SIZE}GiB", ALGORITHM="zstd")
+        ELSE
+            WRITE_SYSCTL_CONFIG("vm.swappiness=0", "vm.vfs_cache_pressure=10", "vm.dirty_ratio=40")
+            GENERATE_ZRAM_CONFIG(SIZE="4GiB", ALGORITHM="zstd")
+        ENDIF
+
+        APPLY_SYSCTL_CHANGES_IMMEDIATELY()
+    })
+
+    // ========================================================================
+    // LAYER 5: HARDWARE I/O SCHEDULER AUTOMATION
+    // ========================================================================
+    PRINT "[5/9] Formulating udev asynchronous hardware triggers..."
+
+    CREATE_UDEV_RULE("rotational==1", SET_DISK_SCHEDULER="bfq", SET_READ_AHEAD="4096K")
+    CREATE_UDEV_RULE("rotational==0", SET_DISK_SCHEDULER="none", SET_READ_AHEAD="128K")
+
+    // ========================================================================
+    // LAYER 6: SESSION INITIALIZATION & STRIPPED GUI
+    // ========================================================================
+    PRINT "[6/9] Initializing PAM-compliant lightweight session..."
+
+    INSTALL_PACKAGES(["greetd", "tuigreet"])
+    CONFIGURE_GREETD_AUTOLOGIN(USER="portable_user", COMMAND="startplasma-wayland")
+    ENABLE_SYSTEMD_SERVICE("greetd.service")
+
+    SET_GLOBAL_ENV_VAR("KWIN_DRM_USE_MODIFIERS", "1")
+    SET_GLOBAL_ENV_VAR("KWIN_OPENGL_INTERFACE", "vulkan")
+    SET_GLOBAL_ENV_VAR("KWIN_TRIPLE_BUFFER", "0")
+
+    DISABLE_KDE_FEATURES(["animations", "blur", "wobbly-windows", "shadows", "ksplash"])
+    SET_MOUSE_PROFILE("flat", ACCELERATION="0")
+
+    // ========================================================================
+    // LAYER 7: HYBRID DB SEARCH & CURATED APPLICATIONS
+    // ========================================================================
+    PRINT "[7/9] Deploying zero-server hybrid search & minimal desktop apps..."
+
+    INSTALL_PACKAGES(["dolphin", "konsole", "kate", "kcalc", "ark", "okular", "spectacle", "gwenview"])
+
+    DISABLE_KDE_BALOO_FILE_INDEXER_DAEMON()
+    INSTALL_PACKAGES(["plocate", "fsearch"])
+    CREATE_SYSTEMD_TIMER("plocate-updatedb", DELAY_AFTER_BOOT="10min", REPEAT_INTERVAL="1d")
+    CONFIGURE_FSEARCH_ENGINE(DATABASE="RAM_ONLY", WATCH="INOTIFY_REALTIME")
+    MAP_KDE_SHORTCUT("Ctrl+Space", "fsearch")
+
+    // ========================================================================
+    // LAYER 8: COMPATIBILITY LAYERS & REAL-TIME CORE WRAPPERS
+    // ========================================================================
+    PRINT "[8/9] Baking Windows/Android compatibility and real-time CPU wrappers..."
+
+    INSTALL_PACKAGES(["wine-staging", "bottles", "waydroid", "lxc", "vmtouch"])
+
+    EXECUTE "mkdir -p /var/lib/waydroid/images"
+    EXECUTE "fallocate -l 1G /var/lib/waydroid/images/system.img"
+    EXECUTE "fallocate -l 1G /var/lib/waydroid/images/vendor.img"
+
+    CREATE_SYSTEMD_SERVICE("vmtouch-lock", TRIGGER="multi-user.target", LOGIC={
+        EXECUTE "bash -c 'vmtouch -dl /usr/lib/libvulkan.so* /usr/lib/libwayland-client.so* /usr/bin/waydroid $([ -d /usr/lib/wine ] && echo /usr/lib/wine)'"
+    })
+
+    CREATE_DYNAMIC_WRAPPER_SCRIPT("/usr/local/bin/launch-bottles", LOGIC={
+        TOTAL_CORES = DETECT_SYSTEM_PHYSICAL_CORES()
+        IF TOTAL_CORES >= 4 THEN
+            LAST_INDEX = TOTAL_CORES - 1
+            EXECUTE "taskset -c 1-" + LAST_INDEX + " /usr/bin/bottles"
+        ELSE
+            EXECUTE "/usr/bin/bottles"
+        ENDIF
+    })
+
+    CREATE_DYNAMIC_WRAPPER_SCRIPT("/usr/local/bin/launch-waydroid", LOGIC={
+        TOTAL_CORES = DETECT_SYSTEM_PHYSICAL_CORES()
+        IF TOTAL_CORES >= 4 THEN
+            LAST_INDEX = TOTAL_CORES - 1
+            EXECUTE "taskset -c 1-" + LAST_INDEX + " /usr/bin/waydroid show-full-ui"
+        ELSE
+            EXECUTE "/usr/bin/waydroid show-full-ui"
+        ENDIF
+    })
+
+    OVERWRITE_DESKTOP_SHORTCDS(TARGET="bottles", EXEC="/usr/local/bin/launch-bottles")
+    OVERWRITE_DESKTOP_SHORTCDS(TARGET="waydroid", EXEC="/usr/local/bin/launch-waydroid")
+
+    // ========================================================================
+    // LAYER 9: HARDWARE-AWARE STORAGE FINALIZATION
+    // ========================================================================
+    PRINT "[9/9] Executing storage optimization pass..."
+
+    CREATE_PACMAN_HOOK("post-transaction", EXECUTABLE="plocate-updatedb")
+
+    IF (DETECT_DRIVE_TYPE(Target_Drive) == "HDD") THEN
+        EXECUTE "e4defrag -v /"
+    ELSE
+        EXECUTE "fstrim -v /"
+    ENDIF
+
+    PRINT "Ultimate Hyper-Performance Portable OS build complete via systemd-boot + kexec."
+
+END FUNCTION
