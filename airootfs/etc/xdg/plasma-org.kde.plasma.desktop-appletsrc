@@ -1,0 +1,5 @@
+[Containments][Desktop]
+wallpaperplugin=org.kde.image
+
+[Containments][Desktop][Wallpaper][org.kde.image][General]
+Image=file:///usr/share/wallpapers/DarkestHour
