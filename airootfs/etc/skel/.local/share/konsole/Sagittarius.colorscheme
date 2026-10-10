@@ -1,0 +1,10 @@
+[Background]
+Color=10,10,15
+
+[Foreground]
+Color=255,255,255
+
+[General]
+Description=Sagittarius Transparent
+Opacity=0.9
+Blur=true

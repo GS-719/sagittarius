@@ -4,7 +4,7 @@ Before=greetd.service
 
 [Service]
 Type=oneshot
-ExecStart=/bin/bash -c "id -u sagittarius &>/dev/null || useradd -m -G wheel,video,audio,input,render sagittarius; echo 'sagittarius:sagittarius' | chpasswd"
+ExecStart=/bin/bash -c "id -u sagittarius &>/dev/null || useradd -m -u 1000 -s /bin/bash -G wheel,video,audio,input,render sagittarius; echo 'sagittarius:sagittarius' | chpasswd"
 RemainAfterExit=yes
 
 [Install]

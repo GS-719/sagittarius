@@ -1,13 +1,14 @@
-# Sagittarius OS Default Bash Profile
+# Load system defaults
+[[ $- != *i* ]] && return
 
-# Custom Terminal Prompt (Purple brackets, Cyan user, White directory)
-PS1='\[\e[1;35m\][singularity] \[\e[1;36m\]\u@sagittarius \[\e[97m\]\w \[\e[1;35m\]> \[\e[0m\]'
-
-# Aliases
+# Enable color aliases
 alias ls='ls --color=auto'
 alias grep='grep --color=auto'
 
-# Run Fastfetch on terminal launch
-if [ -f /usr/bin/fastfetch ]; then
+# Custom colored prompt matching the screenshot
+PS1='\[\e[1;35m\][sagittarius] \[\e[1;36m\]\u@\h \[\e[0;97m\]\w\$ \[\e[0m\]'
+
+# Launch fastfetch automatically
+if [ -x "$(command -v fastfetch)" ]; then
     fastfetch
 fi
