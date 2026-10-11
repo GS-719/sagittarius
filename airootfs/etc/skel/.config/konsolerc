@@ -3,3 +3,9 @@ DefaultProfile=Sagittarius.profile
 
 [Favorite Profiles]
 Favorites=Sagittarius.profile
+
+[General]
+ConfigVersion=1
+
+[UiSettings]
+ColorScheme=

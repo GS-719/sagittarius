@@ -141,7 +141,7 @@ LastUsedCustomAccentColor=104,107,111
 Theme=Papirus-Dark
 
 [KDE]
-AnimationDurationFactor=0.75
+AnimationDurationFactor=1.5
 LookAndFeelPackage=org.kde.breezedark.desktop
 contrast=4
 frameContrast=0.2
