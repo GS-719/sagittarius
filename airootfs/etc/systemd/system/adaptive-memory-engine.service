@@ -1,11 +1,11 @@
 [Unit]
-Description=Adaptive Memory Engine
-After=sysinit.target
-Before=basic.target
+Description=Sagittarius Adaptive ZRAM & Memory Controller
+Before=sysinit.target
 
 [Service]
 Type=oneshot
 ExecStart=/usr/local/bin/adaptive-memory-engine.sh
+RemainAfterExit=yes
 
 [Install]
 WantedBy=sysinit.target

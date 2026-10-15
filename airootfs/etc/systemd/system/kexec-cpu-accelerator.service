@@ -1,12 +1,11 @@
 [Unit]
-Description=Hardware-Sensing Kexec Hot-Swap Trampoline
+Description=Sagittarius CPU Kexec Hot-Swap Matrix
 DefaultDependencies=no
-After=sysinit.target
-Before=basic.target
+Before=sysinit.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/kexec-hot-swap.sh
+ExecStart=/usr/local/bin/kexec-cpu-accelerator.sh
 RemainAfterExit=yes
 
 [Install]

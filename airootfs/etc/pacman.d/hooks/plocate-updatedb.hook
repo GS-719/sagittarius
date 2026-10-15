@@ -6,6 +6,6 @@ Type = Package
 Target = *
 
 [Action]
-Description = Updating plocate database...
+Description = Updating hybrid search database...
 When = PostTransaction
-Exec = /usr/bin/updatedb
+Exec = /usr/bin/systemctl start plocate-updatedb.service
